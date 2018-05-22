@@ -1,12 +1,16 @@
-import pygame
-import math
-import data
-import random
-from pygame.locals import *
-from math import *
-from data import *
+"""
+Ce module gere tous les effets tel que les missiles (impact et trajectoire) et la disparition des vehicules
+"""
 
-class Bullet(pygame.sprite.Sprite):
+import pygame
+from pygame.locals import *
+import math
+import random
+
+from libr.data import *
+
+
+class Bullet(pygame.sprite.Sprite): # Gestion des missiles (affichage, trajectoire, son)
     def __init__(self, pos, angle, size, who):
         pygame.sprite.Sprite.__init__(self)
         self._size = size
@@ -22,8 +26,8 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = pos)
         self.x, self.y = self.rect.center
         self.cannon_dist = 25
-        self.x -= sin(radians(angle))*self.cannon_dist
-        self.y -= cos(radians(angle))*self.cannon_dist
+        self.x -= math.sin(math.radians(angle))*self.cannon_dist
+        self.y -= math.cos(math.radians(angle))*self.cannon_dist
         self.rect.center = self.x, self.y
         self.angle = angle
         self.image = pygame.transform.rotate(self.image, angle)
@@ -33,8 +37,8 @@ class Bullet(pygame.sprite.Sprite):
         return self._size
     def update(self, backgorund, bricks, booms):
         self.rect.center = self.x, self.y
-        self.x += -sin(radians(self.angle))*self.speed
-        self.y += -cos(radians(self.angle))*self.speed
+        self.x += -math.sin(math.radians(self.angle))*self.speed
+        self.y += -math.cos(math.radians(self.angle))*self.speed
 
         for b in bricks:
             if self.rect.colliderect(b.rect):
@@ -48,7 +52,9 @@ class Bullet(pygame.sprite.Sprite):
                     if b.health <= 0:
                         pygame.sprite.Sprite.kill(b)
                         booms.add(Boom(b.rect.center, "large"))
-class Boom(pygame.sprite.Sprite):
+
+
+class Boom(pygame.sprite.Sprite): # effets de disparation des vehicules
     def __init__(self, pos, size):
         pygame.sprite.Sprite.__init__(self)
         if size == "huge":
@@ -77,7 +83,8 @@ class Boom(pygame.sprite.Sprite):
                 blast.update(background)
         self.life-=1
 
-class Fireball(pygame.sprite.Sprite):
+
+class Fireball(pygame.sprite.Sprite):# Gestion des impacts de balle
     def __init__(self, pos, life):
         size = random.randint(0,2)
         self.image = pygame.Surface([size, size])
@@ -118,7 +125,7 @@ class Fireball(pygame.sprite.Sprite):
 
         background.blit(self.image, self.rect)
 
-class Blast(pygame.sprite.Sprite):
+class Blast(pygame.sprite.Sprite): # Gestion de l'impact de l'obus
     def __init__(self, pos, life):
         self.size = life
         self.image = pygame.Surface((30,30))
@@ -132,5 +139,3 @@ class Blast(pygame.sprite.Sprite):
         self.image.set_alpha(self.alpha)
         background.blit(self.image, self.rect)
         self.alpha -= self.life
-
-

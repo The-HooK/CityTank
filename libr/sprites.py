@@ -1,21 +1,26 @@
+"""
+Dans ce module sont contenues les classes de tous les véhicules
+"""
+
 import pygame
+from pygame.locals import *
 import os
 import sys
 import random
 import math
 
-from math import *
-from data import *
-from effects import *
+from libr.data import *
+from libr.effects import *
 
-class Tank(pygame.sprite.Sprite):
-    def __init__(self, pos, angle):
+
+class Tank(pygame.sprite.Sprite): #définiton de la classe "Tank"
+
+    def __init__(self, pos, angle):# Constructeur de la classe
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(filepath("tank.png")).convert_alpha()
         self._image = self.image
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(pos)
-
         self.health = 25
         self.alive = True
         self.speed = 5
@@ -25,23 +30,24 @@ class Tank(pygame.sprite.Sprite):
         self.x, self.y = self.rect.center
         self.bullet_s = pygame.mixer.Sound(filepath("bullet.wav"))
         self.bullet_s.set_volume(.05)
-    def rotate(self):
+
+    def rotate(self): #Definition de la fonction rotate qui permet de faire tourner le tank
         center = self.rect.center
         self.image = pygame.transform.rotozoom(self._image, self.angle, 1.0)
         self.rect = self.image.get_rect(center = center)
 
-    def update(self, keys, bricks, bullets, booms):
+    def update(self, keys, bricks, bullets, booms): # Gestion du vehicule (position, angle, vie)
         self._rect = Rect(self.rect)
         self._rect.center = self.x, self.y
         self.rotate()
         turn_speed = 3
 
         if keys[K_UP] or keys[K_w]:
-            self.x += sin(radians(self.angle))*-self.speed
-            self.y += cos(radians(self.angle))*-self.speed
+            self.x += math.sin(math.radians(self.angle))*-self.speed
+            self.y += math.cos(math.radians(self.angle))*-self.speed
         if keys[K_DOWN] or keys[K_s]:
-            self.x += sin(radians(self.angle))*self.speed
-            self.y += cos(radians(self.angle))*self.speed
+            self.x += math.sin(math.radians(self.angle))*self.speed
+            self.y += math.cos(math.radians(self.angle))*self.speed
         if keys[K_LEFT] or keys[K_a]:
             self.angle += turn_speed
         if keys[K_RIGHT] or keys[K_d]:
@@ -97,109 +103,18 @@ class Tank(pygame.sprite.Sprite):
             self.alive = False
             self.health = 0
 
-class Buggy(pygame.sprite.Sprite):
-    def __init__(self, pos):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load(filepath("buggy.png")).convert_alpha()
-        self._image = self.image
-        self.rect = self.image.get_rect()
-        self.rect = self.rect.move(pos)
-
-        self.alive = True
-        self.health = 25
-        self.speed = 8
-        self.angle = 360
-        self.x, self.y = self.rect.center
-        self.bullet_s = pygame.mixer.Sound(filepath("bullet.wav"))
-        self.bullet_s.set_volume(.25)
-
-    def rotate(self):
-        center = self.rect.center
-        self.image = pygame.transform.rotozoom(self._image, self.angle, 1.0)
-        self.rect = self.image.get_rect(center = center)
-
-    def update(self, keys, bricks, bullets, booms):
-        self._rect = Rect(self.rect)
-        self._rect.center = self.x, self.y
-        self.rotate()
-        turn_speed = 8
-
-        if keys[K_UP] or keys[K_w]:
-            self.x += sin(radians(self.angle))*-self.speed
-            self.y += cos(radians(self.angle))*-self.speed
-            if keys[K_LEFT] or keys[K_a]:
-                self.angle += turn_speed
-            if keys[K_RIGHT] or keys[K_d]:
-                self.angle -= turn_speed
-        if keys[K_DOWN] or keys[K_s]:
-            self.x += sin(radians(self.angle))*self.speed
-            self.y += cos(radians(self.angle))*self.speed
-            if keys[K_LEFT] or keys[K_a]:
-                self.angle -= turn_speed
-            if keys[K_RIGHT] or keys[K_d]:
-                self.angle += turn_speed
-
-        if self.angle > 360:
-            self.angle = self.angle-360
-        if self.angle <0:
-            self.angle = self.angle+360
-
-        self.rect.center = self.x, self.y
-
-        x = self.rect.centerx
-        y = self.rect.centery
-        _x = self._rect.centerx
-        _y = self._rect.centery
-        for b in bricks:
-            if self.rect.colliderect(b.rect):
-                if _x+7 <= b.rect.left and x+7 > b.rect.left:
-                    if b.left == True:
-                        self.x = b.rect.left-7
-                if _x-7 >= b.rect.right and x-7 < b.rect.right:
-                    if b.right == True:
-                        self.x = b.rect.right+7
-                if _y+11 <= b.rect.top and y+11 > b.rect.top:
-                    if b.top == True:
-                        self.y = b.rect.top-11
-                if _y-11 >= b.rect.bottom and y-11 < b.rect.bottom:
-                    if b.bottom == True:
-                        self.y = b.rect.bottom+11
-
-        for b in bullets:
-            if self.rect.colliderect(b.rect) and b.who != "vehicle":
-                b_size = b.get_size()
-                pygame.sprite.Sprite.kill(b)
-                if b_size == "small":
-                    booms.add(Boom(b.rect.center, "small"))
-                    self.health -= 1
-                if b_size == "big":
-                    booms.add(Boom(b.rect.center, "big"))
-                    self.health -=5
-
-        if self.health <= 0:
-            booms.add(Boom(self.rect.center, "huge"))
-            self.alive = False
-
 class Turret(pygame.sprite.Sprite):
-    def __init__(self, pos, veh, follow):
+
+    def __init__(self, pos, veh, follow):# Constructeur de la classe
         pygame.sprite.Sprite.__init__(self)
         self.veh_type = veh
-        if self.veh_type == "tank":
-            self.image = pygame.image.load(filepath("turret.png")).convert_alpha()
-            self.timer = 40
-            self.timer_start = self.timer
-            self.size = "big"
-            self.bang_s = pygame.mixer.Sound(filepath("bang.wav"))
-            self.speed = 3
-            self.bang_s.set_volume(1.0)
-        if self.veh_type == "buggy":
-            self.image = pygame.image.load(filepath("small_turret.png")).convert_alpha()
-            self.timer = 3
-            self.timer_start = self.timer
-            self.size = "small"
-            self.bang_s = pygame.mixer.Sound(filepath("bullet.wav"))
-            self.speed = 4
-            self.bang_s.set_volume(.25)
+        self.image = pygame.image.load(filepath("turret.png")).convert_alpha()
+        self.timer = 40
+        self.timer_start = self.timer
+        self.size = "big"
+        self.bang_s = pygame.mixer.Sound(filepath("bang.wav"))
+        self.speed = 3
+        self.bang_s.set_volume(1.0)
         self._image = self.image
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(pos)
@@ -231,37 +146,21 @@ class Turret(pygame.sprite.Sprite):
             if self.wait_timer >= 5:
                 self.follow = not self.follow
                 self.wait_timer = self.timer_restart
-        if self.follow:
-            self.mouse_angle = math.atan2(xd, yd)*(180/math.pi) +180 #used atan2(x,y) instead of atan2(y,x). Sprite was origanly drawn along the y axis, gave better results
-            if self.angle < self.mouse_angle:
-                if math.fabs(self.angle - self.mouse_angle) < 180:
+        if self.angle != self.tank_angle:
+            if self.angle < self.tank_angle:
+                if math.fabs(self.angle - self.tank_angle) < 180:
                     self.angle +=self.speed
                 else:
                     self.angle -=self.speed
             else:
-                if math.fabs(self.angle - self.mouse_angle) < 180:
+                if math.fabs(self.angle - self.tank_angle) < 180:
                     self.angle -=self.speed
                 else:
                     self.angle +=self.speed
-            if math.fabs(self.angle - self.mouse_angle) < self.speed+.5:
-                self.angle = self.mouse_angle
-
-        if not self.follow:
-            if self.angle != self.tank_angle:
-                if self.angle < self.tank_angle:
-                    if math.fabs(self.angle - self.tank_angle) < 180:
-                        self.angle +=self.speed
-                    else:
-                        self.angle -=self.speed
-                else:
-                    if math.fabs(self.angle - self.tank_angle) < 180:
-                        self.angle -=self.speed
-                    else:
-                        self.angle +=self.speed
-                if math.fabs(self.angle - self.tank_angle) < self.speed+.5:
-                    self.angle = self.tank_angle
-            else:
+            if math.fabs(self.angle - self.tank_angle) < self.speed+.5:
                 self.angle = self.tank_angle
+        else:
+            self.angle = self.tank_angle
 
         self.rotate()
         if self.angle > 360:
@@ -329,8 +228,8 @@ class Drone(pygame.sprite.Sprite):
 
         if self.track == True:
             if self.veh_dis >= 200:
-                self.x += sin(radians(self.angle))*-self.speed
-                self.y += cos(radians(self.angle))*-self.speed
+                self.y += math.cos(math.radians(self.angle))*-self.speed
+                self.x += math.sin(math.radians(self.angle))*-self.speed
             if self.angle != self.target_angle:
                 if self.angle < self.target_angle:
                     if math.fabs(self.angle - self.target_angle) < 180:
@@ -395,6 +294,3 @@ class Drone(pygame.sprite.Sprite):
             self.angle = self.angle-360
         if self.angle <0:
             self.angle = self.angle+360
-
-
-
