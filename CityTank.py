@@ -1,16 +1,10 @@
 #! /usr/bin/env python
 
-import sys
-import os
+import pygame
+from libr.menu import *
 
-try:
-    __file__
-except NameError:
-    pass
-else:
-    libdir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'libr'))
-    sys.path.insert(0, libdir)
-
-sys.path.insert(1, 'libr')
-import run
-run.main()
+pygame.init()
+pygame.display.set_caption("City Tank")
+screen = pygame.display.set_mode((800, 600), 0, 32)
+menu = Menu(screen)
+menu.loop()
